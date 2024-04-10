@@ -24,6 +24,7 @@ def CSA_S6_2019_combos(alpha_D = 1.2, alpha_E = 1.25, alpha_P = 1.05, alpha_L_1 
     """
 
     CSA_S6_2019_COMBOS = {
+        "unfactored" : {"D": 1, "E": 1, "P": 1, "L": 1, "K": 1, "W": 1, "V": 1, "S": 1, "EQ": 1, "F": 1, "A": 1, "H": 1},
         "FLS1" : {"D": 1, "E": 1, "P": 1, "L": 1, "K": 0, "W": 0, "V": 0, "S": 0, "EQ": 0, "F": 0, "A": 0, "H": 0}, 
         "SLS1" : {"D": 1, "E": 1, "P": 1, "L": 0.9, "K": 0.8, "W": 0, "V": 0, "S": 1, "EQ": 0, "F": 0, "A": 0, "H": 0},
         "SLS2" : {"D": 0, "E": 0, "P": 0, "L": 0.9, "K": 0, "W": 0, "V": 0, "S": 0, "EQ": 0, "F": 0, "A": 0, "H": 0}, 
@@ -35,8 +36,8 @@ def CSA_S6_2019_combos(alpha_D = 1.2, alpha_E = 1.25, alpha_P = 1.05, alpha_L_1 
         "ULS6" : {"D": alpha_D, "E": alpha_E, "P": alpha_P, "L": 0, "K": 0, "W": 0, "V": 0, "S": 0, "EQ": 0, "F": 1.3, "A": 0, "H": 0}, 
         "ULS7" : {"D": alpha_D, "E": alpha_E, "P": alpha_P, "L": 0, "K": 0, "W": 0.75, "V": 0, "S": 0, "EQ": 0, "F": 0, "A": 1.3, "H": 0}, 
         "ULS8" : {"D": alpha_D, "E": alpha_E, "P": alpha_P, "L": alpha_L_8, "K": 0, "W": 0, "V": 0, "S": 0, "EQ": 0, "F": 0, "A": 0, "H": 0}, 
-        "ULS9" : {"D": 1.35, "E": alpha_E, "P": alpha_P, "L": 0, "K": 0, "W": 0, "V": 0, "S": 0, "EQ": 0, "F": 0, "A": 0, "H": 0},
-        "unfactored" : {"D": 1, "E": 1, "P": 1, "L": 1, "K": 1, "W": 1, "V": 1, "S": 1, "EQ": 1, "F": 1, "A": 1, "H": 1} 
+        "ULS9" : {"D": 1.35, "E": alpha_E, "P": alpha_P, "L": 0, "K": 0, "W": 0, "V": 0, "S": 0, "EQ": 0, "F": 0, "A": 0, "H": 0}
+         
         }
     return CSA_S6_2019_COMBOS
 

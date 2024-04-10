@@ -10,7 +10,7 @@ import plots
 
 st.sidebar.header("Attribute Inputs (SI units):")
 beam_name = st.sidebar.text_input("Beam Name:", value="Beam Name")
-L = st.sidebar.number_input("L (mm):", value=100.0)
+L = st.sidebar.number_input("L (mm):", value=1000.0)
 E = st.sidebar.number_input("E", value=1.0)
 Iz = st.sidebar.number_input("Iz:", value=1.0)
 Iy = st.sidebar.number_input("Iy:", value=1.0)
@@ -20,19 +20,33 @@ nu = st.sidebar.number_input("nu:", value=1.0)
 rho = st.sidebar.number_input("rho:", value=1.0)
 list_attributes = [beam_name, L, E, Iz, Iy, A, J, nu, rho]
 
-#Support inputs
+
+st.sidebar.header("Target S6 Combo")
+load_combos = list(loadfactors.CSA_S6_2019_combos())
+target_combo = st.sidebar.selectbox(f"Target Combo:", options=load_combos)
+
+
+
+
+
+# Support inputs
 st.sidebar.header("Support Inputs (SI units):")
 support_acc_dict = {}
 support_types = ["P", "R", "F", "Free"]
 num_supports = int(st.sidebar.number_input("Number of supports", value=2, step=1))
 for support in range(num_supports):
     st.sidebar.subheader(f"Support {support+1}")
-    sup_loc = float(st.sidebar.number_input(f"Support {support+1} location:", value = float(support+1), min_value=0.0, max_value=L))
+    if support == 0:
+        sup_loc = float(st.sidebar.number_input(f"Support {support+1} location:", value = float(0.0), min_value=0.0, max_value=L+0.00001))  # First support placed at 0
+    elif support == 1:
+        sup_loc = float(st.sidebar.number_input(f"Support {support+1} location:", value = float(L), min_value=0.0, max_value=L+0.00001))  # Second support placed at L
+    else:
+        sup_loc = float(st.sidebar.number_input(f"Support {support+1} location:", value = float(L/2), min_value=0.0, max_value=L))
+        
+
     sup_rest = st.sidebar.selectbox(f"Support {support+1} restraint:", options=support_types)
     st.sidebar.write("")
-    support_acc_dict.update({float(sup_loc):sup_rest})
-
-
+    support_acc_dict.update({float(sup_loc): sup_rest})
 
 #Load inputs
 st.sidebar.header("Loading Inputs (SI units):")
@@ -65,10 +79,12 @@ for load in range(num_loads):
 
 
 
-shear = app_functions.get_shear_plots(list_attributes, support_acc_dict, load_list_acc)
-moment = app_functions.get_moment_plots(list_attributes, support_acc_dict, load_list_acc)
+shear = app_functions.get_shear_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
+moment = app_functions.get_moment_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
 
 beam = app_functions.plot_beam(list_attributes, support_acc_dict, load_list_acc)
 st.write(beam)
 st.write(shear)
 st.write(moment)
+
+#Add tables

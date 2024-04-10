@@ -27,7 +27,8 @@ def beam_2D_plot(x_y_array, force_type:str, direction:str, force_units: str, len
     min_val_idx = val.index(min_val)
     min_val_loc = coor[min_val_idx]
 
-
+    if force_type == "moment":
+        force_units = force_units+length_units
     fig = Figure()
     ax = fig.gca()
    
@@ -91,8 +92,8 @@ def plot_beam(beam_data):
     ax.set_xlabel('Beam length [mm]')
     
     # Set axis limits and grid
-    ax.set_xlim(-10, beam_data['L']+10)
-    ax.set_ylim(-1.1 * max_load_magnitude, 1.1 * max_load_magnitude)  # Adjust y-axis limits to raise the beam visualization
+    ax.set_xlim(-30, beam_data['L']+30)
+    ax.set_ylim(-1.4 * max_load_magnitude, 1.4 * max_load_magnitude)  # Adjust y-axis limits to raise the beam visualization
     ax.grid(True)
     
     return fig
