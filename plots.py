@@ -66,8 +66,8 @@ def plot_beam(beam_data):
     max_load_magnitude = 0
     for load in beam_data['Loads']:
         if load['Type'] == 'Point':
-            ax.arrow(load['Location'], 0, 0, load['Magnitude'], head_width=2, head_length=0.1*np.abs(load['Magnitude']), fc='red', ec='red')
-            ax.text(load['Location'], load['Magnitude'], f"{load['Magnitude']}", va='bottom', ha='center')
+            ax.arrow(load['Location'], -load['Magnitude'], 0, load['Magnitude'], head_width=0.015*np.abs(beam_data['L']), head_length=0.015*np.abs(beam_data['L']), fc='red', ec='red', head_starts_at_zero = False, length_includes_head = True)
+            ax.text(load['Location'], -load['Magnitude'], f"{abs(load['Magnitude'])}", va='bottom', ha='center')
             max_load_magnitude = max(max_load_magnitude, np.abs(load['Magnitude']))
         elif load['Type'] == 'Dist':
             start_loc = load['Start Location']
@@ -76,12 +76,12 @@ def plot_beam(beam_data):
             end_mag = load['End Magnitude']
             
             # Plot start and end values
-            ax.text(start_loc, start_mag, f"{start_mag}", va='bottom', ha='center')
-            ax.text(end_loc, end_mag, f"{end_mag}", va='bottom', ha='center')
+            ax.text(start_loc, -start_mag, f"{abs(start_mag)}", va='bottom', ha='center')
+            ax.text(end_loc, -end_mag, f"{abs(end_mag)}", va='bottom', ha='center')
             
             # Plot load segment
             x = [start_loc, end_loc, end_loc, start_loc]
-            y = [0, 0, end_mag, start_mag]
+            y = [0, 0, -end_mag, -start_mag]
             ax.fill(x, y, color='orange', alpha=0.5)
             
             max_load_magnitude = max(max_load_magnitude, np.abs(start_mag), np.abs(end_mag))

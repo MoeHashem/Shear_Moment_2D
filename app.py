@@ -79,12 +79,18 @@ for load in range(num_loads):
 
 
 
-shear = app_functions.get_shear_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
-moment = app_functions.get_moment_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
+shear_plot = app_functions.get_shear_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
+moment_plot = app_functions.get_moment_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
+beam_visual = app_functions.plot_beam(list_attributes, support_acc_dict, load_list_acc)
 
-beam = app_functions.plot_beam(list_attributes, support_acc_dict, load_list_acc)
-st.write(beam)
-st.write(shear)
-st.write(moment)
 
+
+
+
+st.write(beam_visual)
+st.write(shear_plot)
+st.write(moment_plot)
+
+
+#add Max load combo option
 #Add tables
