@@ -1,6 +1,5 @@
 import math
 from PyNite import FEModel3D
-from PyNite.Visualization import render_model
 import csv
 from eng_module.utils import str_to_int, str_to_float, read_csv_file
 import loadfactors
