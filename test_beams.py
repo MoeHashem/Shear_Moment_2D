@@ -1,4 +1,4 @@
-import eng_module.beams as beams
+import beams as beams
 from PyNite import FEModel3D
 import pytest
 import math

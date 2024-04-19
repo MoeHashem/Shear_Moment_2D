@@ -1,4 +1,4 @@
-import eng_module.utils as utils
+import utils as utils
 
 
 def test_str_to_int():
