@@ -11,11 +11,11 @@ import plots
 st.sidebar.header("Attribute Inputs (SI units):")
 beam_name = st.sidebar.text_input("Beam Name:", value="Beam Name")
 L = st.sidebar.number_input("L (mm):", value=1000.0)
-E = st.sidebar.number_input("E", value=1.0)
-Iz = st.sidebar.number_input("Iz:", value=1.0)
-Iy = st.sidebar.number_input("Iy:", value=1.0)
-A = st.sidebar.number_input("A:", value=1.0)
-J = st.sidebar.number_input("J:", value=1.0)
+E = st.sidebar.number_input("E (kN/mm2):", value=1.0)
+Iz = st.sidebar.number_input("Iz (mm4):", value=1.0)
+Iy = st.sidebar.number_input("Iy (mm4):", value=1.0)
+A = st.sidebar.number_input("A (mm2):", value=1.0)
+J = st.sidebar.number_input("J (mm4):", value=1.0)
 nu = st.sidebar.number_input("nu:", value=1.0)
 rho = st.sidebar.number_input("rho:", value=1.0)
 list_attributes = [beam_name, L, E, Iz, Iy, A, J, nu, rho]
@@ -23,7 +23,23 @@ list_attributes = [beam_name, L, E, Iz, Iy, A, J, nu, rho]
 
 st.sidebar.header("Target S6 Combo")
 load_combos = list(loadfactors.CSA_S6_2019_combos())
-target_combo = st.sidebar.selectbox(f"Target Combo:", options=load_combos)
+load_combos_with_max = ["max"] + load_combos
+target_combo = st.sidebar.selectbox(f"Target Combo:", options=load_combos_with_max)
+load_factor_details = st.sidebar.selectbox("Load factor details: ", options=["Default", "Advanced"])
+
+if load_factor_details == "Advanced":
+    material_dict = {"Factory-produced components, excluding wood": "M1", "Cast-in-place concrete, wood, and all non-structural components" : "M2", "Wearing surfaces, based on nominal or specified thickness" : "M3", "Earth fill, negative skin friction on piles" : "M4", "Water" : "M5", "Dead load in combination with earthquakes (ULS5)":"M6"}
+    material_type = material_dict[st.sidebar.selectbox(f"Material Type:", options=list(material_dict.keys()))]
+    earth_pressure_dict = {"Passive earth pressure, considered as a load" : "E1", "At-rest earth pressure":"E2", "Active earth pressure":"E3", "Backfill pressure":"E4", "Hydrostatic pressure":"E5"}
+    earth_pressure_type = earth_pressure_dict[st.sidebar.selectbox(f"Earth Pressure Type:", options=list(earth_pressure_dict.keys()))]
+    LL_type_dict = {"Normal load":"Normal", "Special loads mixed with normal traffic for short spans":"Special_mixed_short", "Special loads mixed with normal traffic for other spans":"Special_mixed_other", "Special loads for short spans":"Special_alone_short", "Special loads for other spans":"Special_alone_other"}
+    LL_span_type = LL_type_dict[st.sidebar.selectbox(f"Live Load Span Type:", options=list(LL_type_dict.keys()))]
+    max_min_dict = {"Max":0, "Min": 1}
+    alpha_D = max_min_dict[st.sidebar.selectbox(f"Dead load max/min:", options=list(max_min_dict.keys()))]
+    alpha_E = max_min_dict[st.sidebar.selectbox(f"Earth load max/min:", options=list(max_min_dict.keys()))]
+    alpha_factors = loadfactors.get_alpha_factors(material_type=material_type, alpha_D_max_min=alpha_D, earth_pressure_type=earth_pressure_type, alpha_E_max_min=alpha_E, L_span_type=LL_span_type)
+else:
+    alpha_factors = loadfactors.get_alpha_factors()
 
 
 
@@ -79,18 +95,25 @@ for load in range(num_loads):
 
 
 
-shear_plot = app_functions.get_shear_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
-moment_plot = app_functions.get_moment_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo)
-beam_visual = app_functions.plot_beam(list_attributes, support_acc_dict, load_list_acc)
+shear_plot = app_functions.get_shear_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo, **alpha_factors)
+moment_plot = app_functions.get_moment_plots(list_attributes, support_acc_dict, load_list_acc, target_combo=target_combo, **alpha_factors)
+beam_visual = app_functions.get_beam_visual(list_attributes, support_acc_dict, load_list_acc)
 
 
 
+#Display
 
+st.title("Shear and bending moment diagrams for 2D loading")
+st.write("")
+if target_combo == "max":
+    st.write(f"The Max loading occurs at combo {shear_plot[1]}")
+    st.write("")
 
+st.header("Beam Visualization")
 st.write(beam_visual)
-st.write(shear_plot)
-st.write(moment_plot)
+st.header("Shear Diagram")
+st.write(shear_plot[0])
+st.header("Bending Moment Diagram")
+st.write(moment_plot[0])
 
 
-#add Max load combo option
-#Add tables

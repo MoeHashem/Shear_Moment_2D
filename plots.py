@@ -4,20 +4,39 @@ from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
 
-# model = beams.load_beam_model("test_data/example_beam_wb6.txt")
-# model.analyze(check_statics=False)
-# moment_arrays = beams.extract_arrays_all_combos(model, "moment", "Mz", n_points=3)
-# # shear_arrays = beams.extract_arrays_all_combos(model, "shear", "Fy")
-# env_moment_x_y = loadfactors.load_combo_array(moment_arrays, "ULS2")
-# print(env_moment_x_y)
-# # print(f"{env_moment_x_y=}")
-# # env_shear_x_y = loadfactors.envelope_max(shear_arrays)
+def beam_2D_plot_plotly(x_y_array, force_type:str, direction:str, force_units: str, length_units:str) -> go.Figure:
+    coor = x_y_array[0]
+    val = x_y_array[1]
+    max_val = max(val)
+    max_val_idx = val.index(max_val)
+    max_val_loc = coor[max_val_idx]
+    min_val = min(val)
+    min_val_idx = val.index(min_val)
+    min_val_loc = coor[min_val_idx]
+
+    if force_type == "moment":
+        force_units = force_units+length_units
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(x=coor, y=[0]*len(coor), mode='lines', line=dict(color='black', width=5), name='Beam'))
+
+    fig.add_trace(go.Scatter(x=coor, y=val, mode='lines', fill='tozeroy', fillcolor='rgba(0,0,255,0.3)', line=dict(color='blue'), name=force_type))
+
+    fig.update_layout(title=f"{force_type.title()} ({direction}) in beam [{force_units}]",
+                      xaxis=dict(title=f"Beam length [{length_units}]"),
+                      yaxis=dict(title=f"{force_type.title()} [{force_units}]"),
+                      plot_bgcolor='white')
+
+    fig.add_annotation(x=max_val_loc, y=max_val, text=f"{round(max_val)} [{force_units}]", showarrow=True, arrowhead=1, font=dict(color='black'))
+    fig.add_annotation(x=min_val_loc, y=min_val, text=f"{round(min_val)} [{force_units}]", showarrow=True, arrowhead=1, font=dict(color='black'))
+
+    return fig
 
 
-
-
-def beam_2D_plot(x_y_array, force_type:str, direction:str, force_units: str, length_units:str) -> Figure:
+def beam_2D_plot_matplotlib(x_y_array, force_type:str, direction:str, force_units: str, length_units:str) -> Figure:
     coor = x_y_array[0]
     val = x_y_array[1]
     max_val = max(val)
@@ -47,7 +66,7 @@ def beam_2D_plot(x_y_array, force_type:str, direction:str, force_units: str, len
 # beam_2D_plot(env_moment_x_y, "M_test.png", "moment", "Mz", "Nmm", "mm")
 # beam_2D_plot(env_shear_x_y, "V_test.png", "shear", "Fy", "kN", "mm")
 
-def plot_beam(beam_data):
+def plot_beam_visualization(beam_data):
     fig, ax = plt.subplots()
     
     # Plot the beam line
@@ -95,5 +114,51 @@ def plot_beam(beam_data):
     ax.set_xlim(-30, beam_data['L']+30)
     ax.set_ylim(-1.4 * max_load_magnitude, 1.4 * max_load_magnitude)  # Adjust y-axis limits to raise the beam visualization
     ax.grid(True)
+    
+    return fig
+
+def plot_beam_visualization_plotly(beam_data):
+    """
+    Not properly implemented yet
+    """
+    fig = go.Figure()
+    
+    # Plot the beam line
+    fig.add_trace(go.Scatter(x=[0, beam_data['L']], y=[0, 0], mode='lines', line=dict(color='black', width=2), name='Beam'))
+    
+    # Plot supports
+    for pos, support_type in beam_data['Supports'].items():
+        if support_type == 'P':
+            fig.add_trace(go.Scatter(x=[pos], y=[0], mode='markers', marker=dict(symbol='triangle-up', color='blue', size=10), name='Point Support'))
+        elif support_type == 'R':
+            fig.add_trace(go.Scatter(x=[pos], y=[0], mode='markers', marker=dict(symbol='circle', color='green', size=10), name='Roller Support'))
+        elif support_type == 'F':
+            fig.add_trace(go.Scatter(x=[pos], y=[0], mode='markers', marker=dict(symbol='square', color='purple', size=10), name='Fixed Support'))
+    
+    # Plot loads
+    max_load_magnitude = 0
+    for load in beam_data['Loads']:
+        if load['Type'] == 'Point':
+            fig.add_trace(go.Scatter(x=[load['Location'], load['Location']], y=[0, -load['Magnitude']], mode='lines', line=dict(color='red', width=5), name='Point Load'))
+            fig.add_annotation(x=load['Location'], y=-load['Magnitude'], text=f"{abs(load['Magnitude'])} kN", showarrow=False)
+            max_load_magnitude = max(max_load_magnitude, abs(load['Magnitude']))
+        elif load['Type'] == 'Dist':
+            start_loc = load['Start Location']
+            end_loc = load['End Location']
+            start_mag = load['Start Magnitude']
+            end_mag = load['End Magnitude']
+            fig.add_trace(go.Scatter(x=[start_loc, end_loc], y=[-start_mag, -end_mag], mode='lines', line=dict(color='orange', width=5), name='Distributed Load'))
+            fig.add_annotation(x=start_loc, y=-start_mag, text=f"{abs(start_mag)} kN", showarrow=False)
+            fig.add_annotation(x=end_loc, y=-end_mag, text=f"{abs(end_mag)} kN", showarrow=False)
+            max_load_magnitude = max(max_load_magnitude, abs(start_mag), abs(end_mag))
+    
+    # Set labels and title
+    fig.update_layout(title=beam_data['Name'],
+                      xaxis_title='Beam length [mm]',
+                      yaxis_title='Force [kN]')
+    
+    # Set axis limits and grid
+    fig.update_xaxes(range=[-30, beam_data['L']+30], showgrid=True)
+    fig.update_yaxes(range=[-1.4 * max_load_magnitude, 1.4 * max_load_magnitude], showgrid=True)
     
     return fig

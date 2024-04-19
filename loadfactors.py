@@ -117,7 +117,7 @@ def get_alpha_factors (material_type: str = "M2", alpha_D_max_min: int = 0,
     else:
         alpha_L_8 = 0.5
 
-    return alpha_D, alpha_E, alpha_P, alpha_L_1, alpha_L_2, alpha_L_3, alpha_L_8
+    return {"alpha_D" : alpha_D, "alpha_E":alpha_E, "alpha_P":alpha_P, "alpha_L_1":alpha_L_1, "alpha_L_2":alpha_L_2, "alpha_L_3":alpha_L_3, "alpha_L_8": alpha_L_8}
 
    
 def factor_loads(D_load: float = 0., D: float = 0., 
@@ -164,41 +164,47 @@ def min_factored_load(loads: dict, load_combos: dict):
 
     return min_result, min_cmb   
 
-def envelope_max(results_arrays:dict) -> list[list[float], list[float]]:
-    """
-    Outputs the X-coordinates and the Max Factored load at each coord, each in their own list
-    """
+# def envelope_max(results_arrays:dict) -> list[list[float], list[float]]:
+#     """
+#     Outputs the X-coordinates and the Max Factored load at each coord, each in their own list
+#     """
+#     combo_names = list(results_arrays.keys())
+#     x_points = list(results_arrays[combo_names[0]][0])
+#     values = []
+#     for combo in combo_names:
+#         values.append(results_arrays[combo][1])
+#     max_array = []
+#     for idx, x_point in enumerate(x_points):
+#         max_at_idx = []
+#         for value in values:
+#             max_at_idx.append(value[idx])
+       
+#         max_array.append(max(max_at_idx))
     
-    
-    # S6_combos = CSA_S6_2019_combos()
-    # all_cases = {"D": "D_load", "E": "E_load", "P": "P_load", "L": "L_load", "K": "K_load", "W": "W_load", "V": "V_load", "S": "S_load", "EQ": "EQ_load", "F": "F_load", "A": "A_load", "H": "H_load"}
-    combo_names = list(results_arrays.keys())
-    x_points = list(results_arrays[combo_names[0]][0])
-    values = []
-    for combo in combo_names:
-        values.append(results_arrays[combo][1])
-    max_array = []
-    for idx, x_point in enumerate(x_points):
-        max_at_idx = []
-        for value in values:
-            max_at_idx.append(value[idx])
-        # print(f"{max_at_idx=}")
-        max_array.append(max(max_at_idx))
-    # print(f"{max_array=}")
-    return [x_points, max_array]
+#     return [x_points, max_array]
         
-    # loads_dict = {}
-    # for combo_name in combo_names:
-    #     load_values = list(results_arrays[combo_name][1])
-    #     loads_dict.update({all_cases[combo_name]: load_values})
-    # acc_max_factored_load = []
-               
-        # factored_loads_dict = {}
-    #     for current_case in loads_dict:
-    #         factored_loads_dict.update({current_case: loads_dict[current_case][idx]})
-    #     #print(f"{factored_loads_dict=}")
-    #     acc_max_factored_load.append(max_factored_load(factored_loads_dict, S6_combos)[0])
-    # return [x_points, acc_max_factored_load]
+
+
+def envelope_max(result_arrays: dict) -> list[list[float]]:
+    """
+    Returns the maximum factored array across all factored result arrays in 'result_arrays'.
+
+    'result_arrays': a dict of factored result arrays for an action on a specific framing member,
+        keyed by load combo name. The result array values are a Nx2 array where the x-coordinates
+        are in index 0 and the y-coordinates are in index 1
+    """
+    stacked_results = []
+    for result_array in result_arrays.values():
+        stacked_results.append(result_array[1])
+        x_array = result_array[0]
+
+    enveloped = []
+    for idx, _ in enumerate(x_array):
+        result_elems = []
+        for result_array in stacked_results:
+            result_elems.append(result_array[idx])
+        enveloped.append(max(result_elems))
+    return [x_array, enveloped]
 
 
 def envelope_min(results_arrays:dict) -> list[list[float], list[float]]:
@@ -251,7 +257,33 @@ def load_combo_array(results_arrays:dict, target_combo):
     return [x_points, values]
 
 
+def get_max_combo(array, **kwargs):
+    """
+    Determines which load combo will produce the highest absolute shear/moment
+    """
+    max_positive = float('-inf')
+    max_negative = float('inf')
+    max_combo = "There is no max"
+    max_array = []
 
+    load_combos = CSA_S6_2019_combos(**kwargs)  # Assuming this function returns a dictionary of load combos
+    del load_combos["unfactored"]
+    for load_combo in load_combos.keys():
+        env_x_y = load_combo_array(array, load_combo)
+        max_env = max(env_x_y[1])  # Extracting the maximum value from the envelope result
+        min_env = min(env_x_y[1])  # Extracting the minimum value from the envelope result
+
+        if max_env > max_positive:
+            max_positive = max_env
+            max_combo = load_combo
+            max_array = env_x_y
+
+        if min_env < max_negative:
+            max_negative = min_env
+            max_combo = load_combo
+            max_array = env_x_y
+
+    return max_combo, max_array
     # S6_combos = CSA_S6_2019_combos()
     # used_combo = S6_combos[target_combo] #{'D': 1.2, 'E': 1.25, 'P': 1.05, 'L': 1.7, 'K': 0, 'W': 0, 'V': 0, 'S': 0, 'EQ': 0, 'F': 0, 'A': 0, 'H': 0}
     # all_cases = {"D": "D_load", "E": "E_load", "P": "P_load", "L": "L_load", "K": "K_load", "W": "W_load", "V": "V_load", "S": "S_load", "EQ": "EQ_load", "F": "F_load", "A": "A_load", "H": "H_load"}
@@ -278,6 +310,6 @@ def load_combo_array(results_arrays:dict, target_combo):
     
 
 # loads = {"D_load": 1, "L_load": 1}
-# combos = CSA_S6_2019_combos(*get_alpha_factors("M3", 0, "E4", 0, 0, "Normal", 0))
+# combos = CSA_S6_2019_combos(**get_alpha_factors("M3", 0, "E4", 0, 0, "Normal", 0))
 # X = max_factored_load(loads, combos), min_factored_load(loads, combos)
 # print(X)
