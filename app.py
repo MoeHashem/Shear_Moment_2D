@@ -11,13 +11,20 @@ import plots
 st.sidebar.header("Attribute Inputs (SI units):")
 beam_name = st.sidebar.text_input("Beam Name:", value="Beam Name")
 L = st.sidebar.number_input("L (mm):", value=1000.0)
-E = st.sidebar.number_input("E (kN/mm2):", value=1.0)
-Iz = st.sidebar.number_input("Iz (mm4):", value=1.0)
-Iy = st.sidebar.number_input("Iy (mm4):", value=1.0)
-A = st.sidebar.number_input("A (mm2):", value=1.0)
-J = st.sidebar.number_input("J (mm4):", value=1.0)
-nu = st.sidebar.number_input("nu:", value=1.0)
-rho = st.sidebar.number_input("rho:", value=1.0)
+# E = st.sidebar.number_input("E (kN/mm2):", value=1.0)
+# Iz = st.sidebar.number_input("Iz (mm4):", value=1.0)
+# Iy = st.sidebar.number_input("Iy (mm4):", value=1.0)
+# A = st.sidebar.number_input("A (mm2):", value=1.0)
+# J = st.sidebar.number_input("J (mm4):", value=1.0)
+# nu = st.sidebar.number_input("nu:", value=1.0)
+# rho = st.sidebar.number_input("rho:", value=1.0)
+E=1
+Iz=1
+Iy=1
+A=1
+J=1
+nu=1
+rho=1
 list_attributes = [beam_name, L, E, Iz, Iy, A, J, nu, rho]
 
 
